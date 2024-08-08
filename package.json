@@ -1,0 +1,25 @@
+{
+  "name": "ucanto-compat",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Ucanto cross language compatibility testing",
+  "main": "compat.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alan Shaw",
+  "license": "Apache-2.0 OR MIT",
+  "dependencies": {
+    "@ipld/dag-json": "^10.2.2",
+    "@ipld/dag-ucan": "^3.4.0",
+    "@ucanto/principal": "^9.0.1",
+    "entail": "^2.1.2",
+    "execa": "^9.3.0",
+    "p-defer": "^4.0.1",
+    "sade": "^1.8.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4"
+  }
+}

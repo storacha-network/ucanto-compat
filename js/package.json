@@ -13,9 +13,12 @@
   "description": "",
   "dependencies": {
     "@ipld/dag-json": "^10.2.2",
+    "@ucanto/client": "^9.0.1",
     "@ucanto/principal": "^9.0.1",
     "@ucanto/server": "^10.0.0",
     "@ucanto/transport": "^9.1.1",
+    "@ucanto/validator": "^9.0.2",
+    "multiformats": "^13.2.2",
     "sade": "^1.8.1"
   }
 }

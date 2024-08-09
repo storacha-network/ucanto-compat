@@ -16,10 +16,12 @@
     "@ucanto/principal": "^9.0.1",
     "entail": "^2.1.2",
     "execa": "^9.3.0",
+    "multiformats": "^13.2.2",
     "p-defer": "^4.0.1",
     "sade": "^1.8.1"
   },
   "devDependencies": {
+    "@types/node": "^22.1.0",
     "typescript": "^5.5.4"
   }
 }

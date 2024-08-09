@@ -38,7 +38,7 @@ Create a directory in the root and add a config file specifying the command to r
 
 The CLI must implement the following commands:
 
-#### `service start`
+#### `server start`
 
 Start a Ucanto server. The service URL and public identifier must be output.
 
@@ -91,14 +91,15 @@ Output:
 
 Issue an invocation. Required parameters:
 
+* `--url` - service URL
 * `--issuer` - base64 encoded _private_ key of the issuer
-* `--audience` - DID of the service
-* `--resource` - DID of the resource the delegation applies to
+* `--audience` - DID of the intended receipient (typically the service DID)
+* `--resource` - DID of the resource the invocation applies to
 * `--ability` - name of the capability to delegate (may be specified multiple times)
-* `--caveats` - dag-json encoded parameters for the invocation
 
 Optional parameters:
 
+* `--caveats` - dag-json encoded parameters for the invocation
 * `--proof` - base64 encoded archive of delegations to include as proofs
 
 Output (success):
@@ -117,7 +118,7 @@ Output (error):
 ```json
 {
   "out": {
-    "err": { "...": "..." }
+    "error": { "...": "..." }
   },
   "message": "Mg..."
 }
@@ -126,6 +127,8 @@ Output (error):
 Note: `out` is the result of the invocation, encoded as dag-json.
 
 ### Server implementation
+
+The server MUST operate a Ucanto service at `/` and MUST shut itself down shirtly after receiving a request to `POST /shutdown` (and respond with a `202 Accepted` status).
 
 The server should accept and execute invocation provided the delegation chain is valid. i.e. the issuer does not need explicit delegation from the server to invoke - invocation are acceptable provided the issuer _is_ the resource (self signed) or the issuer is provably delegated to by a self signed delegation.
 

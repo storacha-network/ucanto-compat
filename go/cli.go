@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
-	ed25519 "github.com/storacha-network/go-ucanto/principal/ed25519/signer"
+	"github.com/storacha-network/ucanto-compat/cmd"
 	"github.com/urfave/cli/v2"
 )
 
@@ -16,22 +15,19 @@ func main() {
 				Name: "key",
 				Subcommands: []*cli.Command{
 					{
-						Name:  "gen",
-						Usage: "generate a key",
-						Action: func(cCtx *cli.Context) error {
-							signer, err := ed25519.Generate()
-							if err != nil {
-								return err
-							}
-
-							str, err := ed25519.Format(signer)
-							if err != nil {
-								return err
-							}
-
-							fmt.Printf("{\"key\":\"%s\"}\n", str)
-							return nil
-						},
+						Name:   "gen",
+						Usage:  "Generate an Ed25519 key.",
+						Action: cmd.KeyGen,
+					},
+				},
+			},
+			{
+				Name: "server",
+				Subcommands: []*cli.Command{
+					{
+						Name:   "start",
+						Usage:  "Start a Ucanto server.",
+						Action: cmd.ServerStart,
 					},
 				},
 			},

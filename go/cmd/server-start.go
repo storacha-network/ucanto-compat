@@ -70,7 +70,11 @@ func createServer(signer principal.Signer) (server.ServerView, error) {
 		return nil, err
 	}
 
-	testecho := validator.NewCapability("test/echo", schema.DIDString(), schema.Struct[*testEchoCaveats](typ))
+	testecho := validator.NewCapability(
+		"test/echo",
+		schema.DIDString(),
+		schema.Struct[*testEchoCaveats](typ),
+	)
 
 	return server.NewServer(
 		signer,

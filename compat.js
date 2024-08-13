@@ -1,4 +1,3 @@
-// import whyIsNodeRunning from 'why-is-node-running'
 import fs from 'node:fs'
 import path from 'node:path'
 import sade from 'sade'
@@ -70,8 +69,6 @@ prog
         test: suite
       }
     })
-
-    // setTimeout(() => whyIsNodeRunning(), 5000)
   })
 
 prog.parse(process.argv)

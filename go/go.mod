@@ -3,7 +3,7 @@ module github.com/storacha-network/ucanto-compat
 go 1.22.5
 
 require (
-	github.com/storacha-network/go-ucanto v0.1.1-0.20240808125702-571859ae1cd6
+	github.com/storacha-network/go-ucanto v0.1.1-0.20240813140321-1f13e194d99a
 	github.com/urfave/cli/v2 v2.27.3
 )
 

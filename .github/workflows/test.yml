@@ -25,5 +25,4 @@ jobs:
         with:
           go-version: '1.23'
       - run: npm ci
-      - run: cd js && npm ci
       - run: node compat test ${{ matrix.client }} ${{ matrix.server }}

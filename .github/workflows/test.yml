@@ -24,5 +24,6 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+          cache-dependency-path: go/go.sum
       - run: npm ci
       - run: node compat test ${{ matrix.client }} ${{ matrix.server }}

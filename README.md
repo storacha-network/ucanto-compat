@@ -55,13 +55,18 @@ Note: the server process must continue to run after logging the output and termi
 
 #### `key gen`
 
-Generate an Ed25519 key.
+Generate a private key.
+
+Optional parameters:
+
+* `--type` - type of key to generate ("ed25519" or "rsa"). Default: "ed25519"
 
 Output:
 
 ```json
 {
-  "key": "MgCaZJ5bv5abbSRA8taas7QDr7G9NJcRMj+oxWXgGtHqwm+0BayXMZAtwV/YhPRTnPxVKms7h4DUjsLoSS5npEuyHwTQ="
+  "id": "did:key:z6MkrPpjGnP9KuPptDvqw8ueB8rGNh8wEPoKxjF2MjRJiGxH",
+  "key": { "/": { "bytes": "gCaSb6WUYb/g6fycZa22xD0Q2JueTLPWxCtG3LNA3FZkhu0BsWrgQI4ZkTAcc7OqA1AYogtyCbN83PtmNPqkrwYirJo" } }
 }
 ```
 
@@ -83,7 +88,7 @@ Output:
 
 ```json
 {
-  "delegation": "Mg..."
+  "delegation": { "/": { "bytes": "..." } }
 }
 ```
 
@@ -102,33 +107,21 @@ Optional parameters:
 * `--caveats` - dag-json encoded parameters for the invocation
 * `--proof` - base64 encoded archive of delegations to include as proofs
 
-Output (success):
+Output:
 
 ```json
 {
-  "out": {
-    "ok": { "...": "..." }
+  "headers": {
+    "Content-Type": "application/vnd.ipld.car",
+    "...": "..."
   },
-  "message": "Mg..."
+  "body": { "/": { "bytes":"OqJlcm9vdHOB2CpYJQABcRIgqwMj1r..." } }
 }
 ```
-
-Output (error):
-
-```json
-{
-  "out": {
-    "error": { "...": "..." }
-  },
-  "message": "Mg..."
-}
-```
-
-Note: `out` is the result of the invocation, encoded as dag-json.
 
 ### Server implementation
 
-The server MUST operate a Ucanto service at `/` and MUST shut itself down shirtly after receiving a request to `POST /shutdown` (and respond with a `202 Accepted` status).
+The server MUST operate a Ucanto service at `/` and MUST shut itself down shortly after receiving a request to `POST /shutdown` (and respond with a `202 Accepted` status).
 
 The server should accept and execute invocation provided the delegation chain is valid. i.e. the issuer does not need explicit delegation from the server to invoke - invocation are acceptable provided the issuer _is_ the resource (self signed) or the issuer is provably delegated to by a self signed delegation.
 

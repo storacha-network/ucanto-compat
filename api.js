@@ -4,6 +4,8 @@ import { execa } from 'execa'
 import * as DID from '@ipld/dag-ucan/did'
 import * as dagJSON from '@ipld/dag-json'
 import * as ed25519 from '@ucanto/principal/ed25519'
+import * as rsa from '@ucanto/principal/rsa'
+import { CAR } from '@ucanto/transport'
 import { base64pad } from 'multiformats/bases/base64'
 import defer from 'p-defer'
 
@@ -96,16 +98,25 @@ export class API {
     delete this.#services[id]
   }
 
-  async generateKey () {
-    const cmd = `${this.#config.command} key gen`
-    /** @type {{ key: string }} */
+  /** @param {string} [type] */
+  async generateKey (type) {
+    const cmd = [
+      ...this.#config.command.split(' '),
+      'key',
+      'gen',
+      '--type',
+      type ?? 'ed25519'
+    ]
+    /** @type {{ id: string, key: Uint8Array }} */
     const out = await execAndParse(this.#cwd, cmd)
 
     let signer
     try {
-      signer = ed25519.parse(out.key)
-    } catch (err) {
-      throw new Error(`failed to parse Ed25519 key in output: ${out.key}`)
+      signer = type?.toLowerCase() === 'rsa'
+        ? rsa.decode(out.key)
+        : ed25519.decode(out.key)
+    } catch (/** @type {any} */ err) {
+      throw new Error(`failed to parse ${type ?? 'ed25519'} key: ${err.message}`, { cause: err })
     }
 
     return signer
@@ -120,12 +131,13 @@ export class API {
    * @template {{}} X
    * @param {object} params
    * @param {URL} params.url
-   * @param {ed25519.EdSigner} params.issuer
+   * @param {import('@ucanto/interface').Signer} params.issuer
    * @param {import('@ucanto/interface').DID} params.audience
    * @param {import('@ucanto/interface').DID} params.resource
    * @param {import('@ucanto/interface').Ability} params.ability
    * @param {Record<string, any>} [params.caveats]
    * @param {import('@ucanto/interface').Delegation} [params.proof]
+   * @returns {Promise<{ receipt: import('@ucanto/interface').Receipt<O, X>, message: import('@ucanto/interface').AgentMessage }>}
    */
   async invoke ({
     url,
@@ -142,7 +154,8 @@ export class API {
       '--url',
       url.toString(),
       '--issuer',
-      ed25519.format(issuer),
+      // @ts-expect-error
+      base64pad.encode(Object.values(issuer.toArchive().keys)[0]),
       '--audience',
       audience,
       '--resource',
@@ -158,9 +171,17 @@ export class API {
       if (res.error) throw res.error
       cmd.push('--proof', base64pad.encode(res.ok))
     }
-    /** @type {{ out: import('@ucanto/interface').Result<O, X>, message: string }} */
-    const out = await execAndParse(this.#cwd, cmd)
-    return out
+    /** @type {{ headers: Record<string, string>, body: Uint8Array }} */
+    const res = await execAndParse(this.#cwd, cmd)
+
+    // TODO: use headers to pick the correct transport.
+    const message = await CAR.outbound.decode({ headers: res.headers, body: res.body })
+    if (message.receipts.size !== 1) {
+      throw new Error(`unexpectedly found ${message.receipts.size} receipts in response message`)
+    }
+
+    const receipt = /** @type {any} */ ([...message.receipts.values()][0])
+    return { receipt, message }
   }
 }
 
@@ -172,8 +193,10 @@ export class API {
  */
 const execAndParse = async (cwd, command) => {
   const [bin, ...rest] = Array.isArray(command) ? command : command.split(' ')
+  console.log(`→ ${bin} ${rest.join(' ')}`)
   const { all } = await execa({ cwd, all: true })`${bin} ${rest}`
   try {
+    console.log('←', all)
     return dagJSON.parse(all)
   } catch (err) {
     throw Object.assign(

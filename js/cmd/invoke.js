@@ -17,7 +17,7 @@ import * as dagJSON from '@ipld/dag-json'
  * @param {string} [params.proof]
  */
 export const invoke = async params => {
-  const url = new URL(params.url)
+  const serviceURL = new URL(params.url)
   const issuer = ed25519.parse(params.issuer)
   const audience = DID.parse(params.audience)
   const resource = DID.parse(params.resource).did()
@@ -34,7 +34,7 @@ export const invoke = async params => {
   const conn = connect({
     id: audience,
     codec: CAR.outbound,
-    channel: HTTP.open({ url, method: 'POST' })
+    channel: HTTP.open({ url: serviceURL, method: 'POST' })
   })
 
   const inv = Invocation.invoke({
@@ -48,11 +48,6 @@ export const invoke = async params => {
   const request = await conn.codec.encode(input, conn)
   // @ts-expect-error
   const response = await conn.channel.request(request)
-  const output = await conn.codec.decode(response)
-  const receipts = input.invocationLinks.map(link => output.get(link))
 
-  console.log(dagJSON.stringify({
-    out: receipts[0].out,
-    message: base64pad.encode(response.body)
-  }))
+  console.log(dagJSON.stringify({ headers: response.headers, body: response.body }))
 }

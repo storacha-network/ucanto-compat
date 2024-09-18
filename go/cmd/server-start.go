@@ -10,17 +10,16 @@ import (
 	ipldprime "github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 	ipldschema "github.com/ipld/go-ipld-prime/schema"
-	"github.com/storacha-network/go-ucanto/core/invocation"
-	"github.com/storacha-network/go-ucanto/core/ipld"
-	"github.com/storacha-network/go-ucanto/core/result"
-	"github.com/storacha-network/go-ucanto/core/schema"
-	"github.com/storacha-network/go-ucanto/principal"
-	ed25519 "github.com/storacha-network/go-ucanto/principal/ed25519/signer"
-	"github.com/storacha-network/go-ucanto/server"
-	"github.com/storacha-network/go-ucanto/server/transaction"
-	uhttp "github.com/storacha-network/go-ucanto/transport/http"
-	"github.com/storacha-network/go-ucanto/ucan"
-	"github.com/storacha-network/go-ucanto/validator"
+	"github.com/storacha/go-ucanto/core/invocation"
+	"github.com/storacha/go-ucanto/core/ipld"
+	"github.com/storacha/go-ucanto/core/receipt"
+	"github.com/storacha/go-ucanto/core/schema"
+	"github.com/storacha/go-ucanto/principal"
+	ed25519 "github.com/storacha/go-ucanto/principal/ed25519/signer"
+	"github.com/storacha/go-ucanto/server"
+	uhttp "github.com/storacha/go-ucanto/transport/http"
+	"github.com/storacha/go-ucanto/ucan"
+	"github.com/storacha/go-ucanto/validator"
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,14 +27,12 @@ type testEchoCaveats struct {
 	Echo string
 }
 
-func (c *testEchoCaveats) Build() (ipld.Node, error) {
-	np := basicnode.Prototype.Any
-	nb := np.NewBuilder()
-	ma, _ := nb.BeginMap(1)
-	ma.AssembleKey().AssignString("echo")
-	ma.AssembleValue().AssignString(c.Echo)
-	ma.Finish()
-	return nb.Build(), nil
+func (c testEchoCaveats) Build() (ipld.Node, error) {
+	typ, err := testEchoCaveatsType()
+	if err != nil {
+		return nil, err
+	}
+	return ipld.WrapWithRecovery(&c, typ)
 }
 
 func testEchoCaveatsType() (ipldschema.Type, error) {
@@ -54,7 +51,7 @@ type testEchoSuccess struct {
 	Echo string
 }
 
-func (ok *testEchoSuccess) Build() (ipld.Node, error) {
+func (ok testEchoSuccess) ToIPLD() (ipld.Node, error) {
 	np := basicnode.Prototype.Any
 	nb := np.NewBuilder()
 	ma, _ := nb.BeginMap(1)
@@ -73,15 +70,21 @@ func createServer(signer principal.Signer) (server.ServerView, error) {
 	testecho := validator.NewCapability(
 		"test/echo",
 		schema.DIDString(),
-		schema.Struct[*testEchoCaveats](typ),
+		schema.Struct[testEchoCaveats](typ, nil),
+		validator.DefaultDerives,
 	)
 
 	return server.NewServer(
 		signer,
-		server.WithServiceMethod(testecho.Can(), server.Provide(testecho, func(cap ucan.Capability[*testEchoCaveats], inv invocation.Invocation, ctx server.InvocationContext) (transaction.Transaction[*testEchoSuccess, ipld.Builder], error) {
-			r := result.Ok[*testEchoSuccess, ipld.Builder](&testEchoSuccess{Echo: cap.Nb().Echo})
-			return transaction.NewTransaction(r), nil
-		})),
+		server.WithServiceMethod(
+			testecho.Can(),
+			server.Provide(
+				testecho,
+				func(cap ucan.Capability[testEchoCaveats], inv invocation.Invocation, ctx server.InvocationContext) (testEchoSuccess, receipt.Effects, error) {
+					return testEchoSuccess{Echo: cap.Nb().Echo}, nil, nil
+				},
+			),
+		),
 	)
 }
 

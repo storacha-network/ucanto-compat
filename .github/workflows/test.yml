@@ -1,0 +1,25 @@
+name: Test
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        client: [js, go]
+        server: [js, go]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20
+          cache: 'npm'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - run: npm ci
+      - run: node compat test ${{ matrix.client }} ${{ matrix.server }}

@@ -4,7 +4,7 @@ This allows implementations of Ucanto in different languages to be tested agains
 
 ## Usage
 
-Install Node.js and dependencies:
+Install Node.js and Golang. Then install JS dependencies:
 
 ```sh
 npm install

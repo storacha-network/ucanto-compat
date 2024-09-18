@@ -1,5 +1,7 @@
 # Ucanto compatibility testing
 
+[![Test](https://github.com/storacha/ucanto-compat/actions/workflows/test.yml/badge.svg)](https://github.com/storacha/ucanto-compat/actions/workflows/test.yml)
+
 This allows implementations of Ucanto in different languages to be tested against each other for compatibility.
 
 ## Usage
